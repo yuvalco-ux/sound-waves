@@ -13,13 +13,29 @@
     canvas {
       display: block;
     }
+
+    /* כפתור הפעלת מיקרופון */
+    #micButton {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 12px 18px;
+      background: black;
+      color: white;
+      border-radius: 8px;
+      font-family: sans-serif;
+      cursor: pointer;
+      z-index: 9999;
+    }
   </style>
 </head>
 <body>
 
+<button id="micButton">הפעל מיקרופון 🎤</button>
+
 <script>
 /////////////////////////////////////////////////////
-// 🎤 Wave Animation — Sound + Hover — Wix Ready
+// 🎤 Wave Animation — Sound + Hover — Wix/iFrame Ready
 /////////////////////////////////////////////////////
 
 const urls = [
@@ -57,6 +73,7 @@ const urls = [
 let ellipses = [];
 let imgs = [];
 let spacing = -40;
+
 let mic, amplitude;
 let audioReady = false;
 let micLevel = 0;
@@ -69,7 +86,6 @@ let hoverDecay = 0.05;
 const baseWidth = 1920;
 const baseHeight = 1080;
 
-// Load images
 function preload() {
   urls.forEach(url => imgs.push(loadImage(url)));
 }
@@ -77,18 +93,21 @@ function preload() {
 function setup() {
   let w = windowWidth;
   let h = (w / baseWidth) * baseHeight;
+
   if (h > windowHeight) {
     h = windowHeight;
     w = (h / baseHeight) * baseWidth;
   }
+
   createCanvas(w, h);
   imageMode(CENTER);
   noSmooth();
   pixelDensity(2);
 
   setupEllipses();
+}
 
-  // enable mic on click
+function enableMic() {
   userStartAudio().then(() => {
     mic = new p5.AudioIn();
     mic.start(() => {
@@ -96,31 +115,35 @@ function setup() {
       amplitude.setInput(mic);
       amplitude.smooth(0.6);
       audioReady = true;
+      console.log("Mic enabled!");
     });
   });
 }
+
+document.getElementById("micButton").onclick = enableMic;
 
 function draw() {
   background(255);
 
   if (audioReady && mic) micLevel = mic.getLevel();
+
   let level = max(micLevel, amplitude ? amplitude.getLevel() : 0);
   let scaled = map(level, 0, 0.08, 0, 1, true);
   smoothedLevel = lerp(smoothedLevel, scaled, 0.12);
 
   ellipses.forEach(e => e.update(smoothedLevel));
   ellipses.forEach(e => e.display());
-  debugMicLevel();
-
 }
 
 function windowResized() {
   let w = windowWidth;
   let h = (w / baseWidth) * baseHeight;
+
   if (h > windowHeight) {
     h = windowHeight;
     w = (h / baseHeight) * baseWidth;
   }
+
   resizeCanvas(w, h);
   setupEllipses();
 }
@@ -131,6 +154,7 @@ function setupEllipses() {
   let scaleFactor = min(width / baseWidth, height / baseHeight);
   let cellW = 100 * scaleFactor;
   let y = height / 2;
+
   let totalWidth = imgs.length * (cellW + spacing * scaleFactor);
   let startX = width / 2 - totalWidth / 2 + cellW / 2;
 
