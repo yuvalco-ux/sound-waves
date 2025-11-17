@@ -177,4 +177,3 @@ class SoundWaves extends HTMLElement {
 }
 
 customElements.define("sound-waves", SoundWaves);
-
